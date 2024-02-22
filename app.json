@@ -1,0 +1,10 @@
+{
+  "expo": {
+    "name": "fml_client",
+    "slug": "fml_client",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  }
+}
