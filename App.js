@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, Button } from "react-native";
+//import { RandomForestClassifier } from "scikit-learn";
 import axios from "axios";
 
 const App = () => {
@@ -8,19 +9,42 @@ const App = () => {
   const [answers, setAnswers] = useState({});
   const [model, setModel] = useState(null);
   const [prediction, setPrediction] = useState(null);
+  const [modelParam, setModelParam] = useState(null);
 
   useEffect(() => {
-    // Fetch basic ML model from backend
+    //Fetch basic ML model from backend
     axios
-      .get("http://127.0.0.1:5000//get_model")
+      .get("http://localhost:5000/get_model")
       .then((response) => {
         console.log("MKK", response);
-        setModel(response.data);
+        setModelParam(response);
+        //setModel(new RandomForestClassifier(modelParam));
         // Set up initial question(s) based on model or hardcoded
         setQuestions([
           "Do you often feel nervous?",
           "Do you experience panic attacks?",
-          // Add more questions based on your dataset
+          "Do you experience rapid breathing?",
+          "Do you often sweat excessively?",
+          "Do you have trouble concentrating?",
+          "Do you have trouble sleeping?",
+          "Do you have trouble with work or daily tasks?",
+          "Do you often feel hopeless?",
+          "Do you experience frequent anger or irritability?",
+          "Do you tend to overreact to situations?",
+          "Have you noticed a change in your eating habits?",
+          "Have you experienced suicidal thoughts?",
+          "Do you often feel tired or fatigued?",
+          "Do you have close friends you can confide in?",
+          "Do you spend excessive time on social media?",
+          "Have you experienced significant weight gain or loss?",
+          "Do you place a high value on material possessions?",
+          "Do you tend to keep to yourself or prefer solitude?",
+          "Do you frequently experience distressing memories?",
+          "Do you have nightmares frequently?",
+          "Do you tend to avoid people or activities?",
+          "Do you often feel negative about yourself or your life?",
+          "Do you have trouble concentrating or focusing?",
+          "Do you often blame yourself for things?",
         ]);
       })
       .catch((error) => {
@@ -41,19 +65,21 @@ const App = () => {
       setPrediction(localPrediction);
 
       // Send model updates to backend
-      axios
-        .post("http://your-backend-url/update_model", { model_update: model })
-        .then((response) => {
-          console.log("Model updates sent successfully");
-        })
-        .catch((error) => {
-          console.error("Error sending model updates:", error);
-        });
+      // axios
+      //   .post("https://fml-mentalhealth-backend-1.onrender.com/update_model", {
+      //     model_update: model,
+      //   })
+      //   .then((response) => {
+      //     console.log("Model updates sent successfully");
+      //   })
+      //   .catch((error) => {
+      //     console.error("Error sending model updates:", error);
+      //   });
     }
   };
 
   // Function to make prediction using local model
-  const predictWithLocalModel = (model, answers) => {
+  const predictWithLocalModel = async (model, answers) => {
     if (!model) {
       console.error("No model available for prediction");
       return null;
@@ -62,10 +88,10 @@ const App = () => {
     // Convert answers to the format expected by the model (if needed)
     // Assuming RandomForestClassifier expects a 2D array where each row represents a sample and each column represents a feature
     const formattedAnswers = Object.values(answers).map((answer) => [answer]);
-
+    console.log("Answers", formattedAnswers);
     // Make prediction using the fetched model
-    const prediction = model.predict(formattedAnswers);
-
+    const prediction = await model.predict(formattedAnswers);
+    console.log("Prediction", prediction);
     return prediction; // Return the prediction
   };
 
@@ -89,6 +115,16 @@ const App = () => {
           {prediction && <Text>Prediction: {prediction}</Text>}
         </View>
       )}
+      {/* <Text>Hello ghchg</Text>
+      <Text>Hello ghchg</Text>
+      <Text>Hello ghchg</Text>
+      <Text>Hello ghchg</Text>
+      <Text>Hello ghchg</Text>
+      <Text>Hello ghchg</Text>
+      <Text>Hello ghchg</Text>
+      <Text>Hello ghchg</Text>
+      <Text>Hello ghchg</Text>
+      <Text>Hello ghchg</Text> */}
     </View>
   );
 };
