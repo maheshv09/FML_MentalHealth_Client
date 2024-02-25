@@ -43,8 +43,10 @@ const App = () => {
         "Do you often blame yourself for things?",
       ]);
       const response = await fetch("http://localhost:5000/get_tf_model");
+      console.log("%%%%%%%%%%%%%  RESPONSE",response)
       const modelJSON = await response.json();
       const loadedModel = await tf.loadLayersModel(tf.io.fromMemory(modelJSON));
+      console.log("modelJSON :",modelJSON,"\n loadedModel :",loadedModel)
       setModel(loadedModel);
     }
     fetchModel();
@@ -79,23 +81,27 @@ const App = () => {
   // Function to make prediction using local model
   const predictWithLocalModel = async (model, answers) => {
     if (!model) {
-      console.error("No model available for prediction");
-      return null;
+        console.error("No model available for prediction");
+        return null;
     }
 
-    // Convert answers to the format expected by the model (if needed)
-    // Assuming RandomForestClassifier expects a 2D array where each row represents a sample and each column represents a feature
-    const formattedAnswers = Object.values(answers).map((answer) => [answer]);
-    const inputData = tf.tensor2d(formattedAnswers);
+    // Convert answers to the format expected by the model
+    const formattedAnswers = Object.values(answers).map(answer => answer ? 1 : 0); // Convert boolean answers to 0 or 1
+    console.log("Formatted Answers:", formattedAnswers);
+
+    // Pad the formatted answers to ensure it has 24 features
+    const paddedAnswers = formattedAnswers.concat(Array(24 - formattedAnswers.length).fill(0));
+    console.log("Padded Answers:", paddedAnswers);
+
+    // Convert the padded answers to a 2D tensor with shape [1, 24]
+    const inputData = tf.tensor2d([paddedAnswers]);
+
+    // Make prediction using the fetched model
     const predictions = model.predict(inputData);
     const predictionData = predictions.dataSync();
+    console.log("PREDICT :",predictionData)
     return predictionData;
-    // console.log("Answers", formattedAnswers);
-    // // Make prediction using the fetched model
-    // const prediction = await model.predict(formattedAnswers);
-    // console.log("Prediction", prediction);
-    // return prediction; // Return the prediction
-  };
+};
 
   return (
     <View>
