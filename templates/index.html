@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Questionnaire</title>
+</head>
+<body>
+    <h1>Questionnaireeee</h1>
+
+    <form action="/predict" method="post">
+        {% for index in range(24) %}
+        <div>
+            <p>{{ questions[index] }}</p>
+            <label for="yes-{{ index }}">Yes</label>
+            <input type="radio" id="yes-{{ index }}" name="answer-{{ index }}" value="yes">
+            <label for="no-{{ index }}">No</label>
+            <input type="radio" id="no-{{ index }}" name="answer-{{ index }}" value="no">
+        </div>
+        {% endfor %}
+
+        <button type="submit">Predict</button>
+    </form>
+
+    {% if prediction %}
+    <div>
+        <h2>Prediction</h2>
+        <p>Predicted disorder: {{ prediction }}</p>
+    </div>
+    {% endif %}
+</body>
+</html>
