@@ -4,29 +4,311 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Questionnaire</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f3e5f5; 
+            background: radial-gradient(circle, #f3e5f5, #9575cd); 
+            margin: 0;
+            padding: 0;
+            color: #4527a0; 
+        }
+    
+        h1 {
+            text-align: center;
+            color: #4527a0; 
+            margin-top: 20px;
+        }
+    
+        form {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            margin-top: 30px;
+            text-align: center;
+        }
+    
+        .question-container {
+            margin-bottom: 20px;
+            display: none;
+            text-align: center;
+        }
+    
+        p {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #4527a0;
+        }
+    
+        label {
+            font-size: 18px;
+            margin-right: 10px;
+            color: #673ab7; 
+        }
+    
+        input[type="radio"] {
+            margin-right: 5px;
+            display: none;
+        }
+    
+        input[type="radio"] + label {
+            position: relative;
+            padding-left: 30px;
+            cursor: pointer;
+            display: inline-block;
+            text-align: left;
+        }
+    
+        input[type="radio"] + label:before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #673ab7; 
+            border-radius: 50%;
+            background-color: #fff;
+        }
+    
+        input[type="radio"]:checked + label:before {
+            background-color: #673ab7; 
+        }
+    
+        .predict-button-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .recommend-button-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+    
+        button {
+            background-color: #673ab7; 
+            color: #fff;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            display: none;
+        }
+    
+        button:hover {
+            background-color: #512da8; 
+        }
+    
+        h2 {
+            text-align: center;
+            color: #4527a0; 
+            margin-top: 20px;
+        }
+    
+        p.prediction {
+            font-size: 24px;
+            text-align: center;
+            color: #4527a0;
+        }
+    
+        .radio-label {
+            cursor: pointer;
+            position: relative;
+            transition: background-color 0.3s ease; 
+            text-align: left;
+        }
+    
+        .radio-label:before {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 0;
+            width: 15px;
+            height: 15px;
+            border: 2px solid #673ab7; 
+            border-radius: 50%;
+            background-color: #fff;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+    
+        input[type="radio"] {
+            display: none;
+        }
+    
+        input[type="radio"]:checked + .radio-label:before {
+            background-color: #673ab7; 
+        }
+    
+        .radio-label:hover:before {
+            background-color: #673ab7;
+        }
+
+        .recommendation-container {
+            align-items: center;
+            justify-content: center;
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); 
+            margin-top: 20px; 
+        }
+
+.recommendation-container h2 {
+    color: #4527a0; /* Header text color */
+    text-align: center; /* Center-align the header */
+    margin-bottom: 10px; 
+}
+
+.recommendations {
+    list-style-type: none; 
+    padding: 0; 
+}
+
+.recommendation {
+    background-color: #f9f9f9; 
+    border-radius: 8px; 
+    margin-bottom: 10px; 
+    padding: 10px;
+}
+
+
+
+.recommendation-text {
+    font-size: 22px; 
+    color: #4527a0;
+    font-weight: 500;
+    text-align: center;
+
+}
+
+    </style>
+    
+    
+        
+    <script>
+        var currentIndex = 0;
+
+        function showNextQuestion() {
+            document.getElementById("question-" + currentIndex).style.display = "none";
+            
+            currentIndex += 1;
+            document.getElementById("question-" + currentIndex).style.display = "block";
+
+            if (currentIndex === 23) {
+                document.getElementById("predict-button").style.display = "block";
+            }
+        }
+
+        function handleRadioButtonClick() {
+            showNextQuestion();
+        }
+
+        function calculateWeights(recommendations, yesCounts) {
+        var weightedRecommendations = {};
+        for (var question in recommendations) {
+            var weight = recommendations[question].length * yesCounts[question];
+            weightedRecommendations[question] = weight;
+        }
+        return weightedRecommendations;
+    }
+
+    // Function to show recommendations
+    async function showRecommendations() {
+        const recommendationData = await fetchRecommendations();
+        const checkedRadioButtons = document.querySelectorAll('input[type="radio"]:checked');
+        const yesCounts = {};
+
+        checkedRadioButtons.forEach(function (radioButton) {
+            var question = radioButton.name.split('-')[1];
+            if (!yesCounts[question]) {
+                yesCounts[question] = 0;
+            }
+            if (radioButton.value === "yes") {
+                yesCounts[question]++;
+            }
+        });
+
+        const weightedRecommendations = calculateWeights(recommendationData, yesCounts);
+
+        // Sort recommendations based on weights
+        const sortedRecommendations = Object.keys(weightedRecommendations).sort(function (a, b) {
+            return weightedRecommendations[b] - weightedRecommendations[a];
+        });
+
+        // Display the top 8 recommendations
+        const topRecommendations = sortedRecommendations.slice(0, 8);
+
+        // Display recommendations
+        topRecommendations.forEach(function (question) {
+            var recommendationDiv = document.getElementById('recommendation-' + question);
+            var recommendationText = document.getElementById('recommendation-text-' + question);
+            var questionText = document.getElementById('question-' + question).querySelector('p').innerText;
+            recommendationText.innerHTML = recommendationData[question].join(', ');
+            recommendationDiv.style.display = 'block';
+        });
+    }
+    </script>
 </head>
 <body>
-    <h1>Questionnaireeee</h1>
+    <h1>Federated Machine Learning for Depression Diagnosis</h1>
 
     <form action="/predict" method="post">
-        {% for index in range(24) %}
-        <div>
-            <p>{{ questions[index] }}</p>
-            <label for="yes-{{ index }}">Yes</label>
-            <input type="radio" id="yes-{{ index }}" name="answer-{{ index }}" value="yes">
-            <label for="no-{{ index }}">No</label>
-            <input type="radio" id="no-{{ index }}" name="answer-{{ index }}" value="no">
+        {% for index, question in custom_enumerate(questions) %}
+        <div id="question-{{ index }}" {% if index != 0 %} style="display: none;" {% endif %}>
+            <p>{{ question }}</p>
+            <input type="radio" id="yes-{{ index }}" name="answer-{{ index }}" value="yes" onclick="handleRadioButtonClick()">
+            <label for="yes-{{ index }}" class="radio-label">Yes</label>
+            <input type="radio" id="no-{{ index }}" name="answer-{{ index }}" value="no" onclick="handleRadioButtonClick()">
+            <label for="no-{{ index }}" class="radio-label">No</label>
         </div>
         {% endfor %}
 
-        <button type="submit">Predict</button>
-    </form>
+        <div class="predict-button-container">
+            <button type="submit" style="display: none; position: relative;" id="predict-button" onclick="showRecommendations()">Predict</button>
+        </div>
+
+        <div class="recommend-button-container">
+            <button type="button" style="position: relative;" onclick="showRecommendations()">Recommend</button>
+        </div>
+        
+    </form> 
 
     {% if prediction %}
     <div>
         <h2>Prediction</h2>
-        <p>Predicted disorder: {{ prediction }}</p>
+        <p style="text-align: center;">Predicted disorder: {{ prediction }}</p>
     </div>
     {% endif %}
+
+    {{recommendations}}
+    
+    {% if recommendations %}
+    <div class="recommendation-container" id="recommendations-container">
+        <h2>Top Recommendations</h2>
+        <ul class="recommendations">
+            {% for recommendation, data in recommendations.items() %}
+                <li class="recommendation" id="recommendation-{{ recommendation }}">
+                    <p class="recommendation-text">{{ data.recommendation }}</p>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    
+    <script>
+        function showRecommendations() {
+            // Get the recommendations container
+            var recommendationsContainer = document.getElementById('recommendations-container');
+            
+            // Display the recommendations container
+            recommendationsContainer.style.display = 'block';
+        }
+    </script>        
 </body>
 </html>
