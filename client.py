@@ -238,8 +238,15 @@ def predict():
 
     answers = [request.form.get(f'answer-{i}') for i in range(24)]
 
-    encoded_answers = [1 if ans == 'yes' else 0 for ans in answers]
+    encoded_answers = []
+    for ans in answers:
+        if ans in ['always', 'often']:
+            encoded_answers.append(1)
+        else:
+            encoded_answers.append(0)
+
     input_data = np.array([encoded_answers])
+
     
     predictions = client_model.predict(input_data)
 
@@ -249,7 +256,7 @@ def predict():
     
     mapped_recommendations = {}
     for i, answer in enumerate(answers):
-        if answer == 'yes':
+        if answer in ['always', 'often']:
             recommendation = questions[i]
             recommendation_data = recommendations[recommendation]  # Retrieve recommendation data from the dictionary
             weight = recommendation_data['weights'][prediction_result]
@@ -259,15 +266,13 @@ def predict():
     sorted_recommendations = {k: v for k, v in sorted(mapped_recommendations.items(), key=lambda item: item[1]['weight'], reverse=True)}
     
     # Check if the number of "yes" responses is greater than 8
-    num_yes_responses = sum(1 for ans in answers if ans == 'yes')
+    num_yes_responses = sum(encoded_answers)
     if num_yes_responses > 8:
         # Display only the top 8 recommendations
         sorted_recommendations = dict(list(sorted_recommendations.items())[:8])
     
     # Pass questions, recommendations, and weights to the HTML template
     return render_template('index.html', questions=questions, prediction=prediction_result, answers=answers, recommendations=sorted_recommendations)
-
-    
 
 
 def custom_enumerate(iterable):
