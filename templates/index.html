@@ -261,10 +261,14 @@
         {% for index, question in custom_enumerate(questions) %}
         <div id="question-{{ index }}" {% if index != 0 %} style="display: none;" {% endif %}>
             <p>{{ question }}</p>
-            <input type="radio" id="yes-{{ index }}" name="answer-{{ index }}" value="yes" onclick="handleRadioButtonClick()">
-            <label for="yes-{{ index }}" class="radio-label">Yes</label>
-            <input type="radio" id="no-{{ index }}" name="answer-{{ index }}" value="no" onclick="handleRadioButtonClick()">
-            <label for="no-{{ index }}" class="radio-label">No</label>
+            <input type="radio" id="always-{{ index }}" name="answer-{{ index }}" value="always" onclick="handleRadioButtonClick()">
+            <label for="always-{{ index }}" class="radio-label">Always</label>
+            <input type="radio" id="often-{{ index }}" name="answer-{{ index }}" value="often" onclick="handleRadioButtonClick()">
+            <label for="often-{{ index }}" class="radio-label">Often</label>
+            <input type="radio" id="sometimes-{{ index }}" name="answer-{{ index }}" value="sometimes" onclick="handleRadioButtonClick()">
+            <label for="sometimes-{{ index }}" class="radio-label">Sometimes</label>
+            <input type="radio" id="never-{{ index }}" name="answer-{{ index }}" value="never" onclick="handleRadioButtonClick()">
+            <label for="never-{{ index }}" class="radio-label">Never</label>
         </div>
         {% endfor %}
 
