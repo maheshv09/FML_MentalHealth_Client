@@ -42,6 +42,8 @@ questions = [
 ]
 
 
+
+
 def initialize_client_model():
     global client_model
 
@@ -55,9 +57,11 @@ def initialize_client_model():
     # Convert base64-encoded weights back to bytes
     response = requests.get('http://localhost:5000/get_weights')
     with open('model_weights.weights.h5', 'wb') as f:
+    with open('model_weights.weights.h5', 'wb') as f:
         f.write(response.content)
 
     # Load model weights
+    model.load_weights('model_weights.weights.h5')
     model.load_weights('model_weights.weights.h5')
 
     # Set the received model as the client model
@@ -67,9 +71,12 @@ def initialize_client_model():
 initialize_client_model()
 
 
+
+
 @app.route('/')
 def index():
     return render_template('index.html', questions=questions)
+
 
 
 # @app.route('/predict', methods=['POST'])
@@ -105,9 +112,11 @@ def get_model_from_server():
     response = requests.get('http://localhost:5000/get_weights')
 
     with open('model_weights.weights.h5', 'wb') as f:
+    with open('model_weights.weights.h5', 'wb') as f:
         f.write(response.content)
         # Set model weights
     #weightss = response.content
+    model.load_weights('model_weights.weights.h5')
     model.load_weights('model_weights.weights.h5')
     new_data_list = [0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
@@ -237,6 +246,7 @@ recommendations = {question: get_recommendation_for_question(question) for quest
 def predict():
     global client_model
     global recommendations
+    global recommendations
 
     if client_model is None:
         initialize_client_model()
@@ -250,7 +260,16 @@ def predict():
         else:
             encoded_answers.append(0)
 
+    encoded_answers = []
+    for ans in answers:
+        if ans in ['always', 'often']:
+            encoded_answers.append(1)
+        else:
+            encoded_answers.append(0)
+
     input_data = np.array([encoded_answers])
+
+    
 
     
     predictions = client_model.predict(input_data)
@@ -336,7 +355,28 @@ def update_client_model(input_data, new_target_label):
     
     print("NEW DATA SHAPE:", X.shape, Y.shape)
     print("MODEL SUMMARY:", client_model.summary())
+    print("INITIAL DATA:", input_data, new_target_label)
+
+   
+    # Create output_array
+    output_array = np.zeros(5)
+    output_array[new_target_label] = 1
+
+    concatenated_data = input_data + output_array.tolist()
+    print("CONCATENATED DATA :",concatenated_data)
+    data = {f'col_{i}': [val] for i, val in enumerate(concatenated_data)}
+    df = pd.DataFrame(data)
+
+
+    X = df.iloc[:, :-5]  # Select all columns except the last 5
+    Y = df.iloc[:, -5:]   # Select only the last 5 columns
+
+
+    
+    print("NEW DATA SHAPE:", X.shape, Y.shape)
+    print("MODEL SUMMARY:", client_model.summary())
     # Compile the model if it hasn't been compiled already
+    if not client_model._jit_compile:
     if not client_model._jit_compile:
         client_model.compile(optimizer='adam', loss='categorical_crossentropy')
 
